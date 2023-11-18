@@ -10,8 +10,8 @@
 
 #ball-container {
     position: absolute;
-    width: 20vh;
-    height: 50vh;
+    width: 50vh;
+    height: 60vh;
 
     left: 50%;
     top: 50%;
