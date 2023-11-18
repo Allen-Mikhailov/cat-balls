@@ -1,0 +1,22 @@
+.ball {
+    border-radius: 50%;
+    aspect-ratio: 1;
+    color: green;
+
+    position: absolute;
+    translate: -50% -50%;
+    
+}
+
+#ball-container {
+    position: absolute;
+    width: 20vh;
+    height: 50vh;
+
+    left: 50%;
+    top: 50%;
+
+    translate: -50% -50%;
+
+    background-color: black;
+}
