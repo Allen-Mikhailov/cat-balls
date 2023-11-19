@@ -10,6 +10,7 @@ body {
     position: absolute;
     translate: -50% -50%;
     
+    transition: all .5;
 }
 
 #ball-container {

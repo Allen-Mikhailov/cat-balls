@@ -2,17 +2,25 @@ const min = Math.min
 const abs = Math.abs
 const floor = Math.floor
 const random = Math.random
+const randF = () => {return random()*2-1}
+const sqrt = Math.sqrt
+const hypot = Math.hypot
+const atan2 = Math.atan2
+const sin = Math.sin
+const cos = Math.cos
+const pi = Math.PI
 
 const ballContainer = document.getElementById("ball-container")
 
 const balls = []
-const updatesPerTick = 3
+const updatesPerTick = 5
 const dtCap = 1/10
 
 const bounceFriction = 1 - .5
 const gravity = 1
 
-const ballSizes = [.05, .10, .15, .20];
+const ballSizes = [.025, .05, .075, .1];
+const collisionRandomness = 0.000001
 
 let lastTimeStamp = Date.now()
 
@@ -91,19 +99,50 @@ function circleCollisions()
         sBalls.map((ball2, i2) => {
             if (i1 == i2) {return;}
 
-            const distance = Math.sqrt(
-                (ball1.x-ball2.x)*(ball1.x-ball2.x) + 
-                (ball1.y-ball2.y)*(ball1.y-ball2.y)
-                )
+            const rx1 = ball1.x + randF()*collisionRandomness
+            const ry1 = ball1.y + randF()*collisionRandomness
+            const rx2 = ball2.x + randF()*collisionRandomness
+            const ry2 = ball2.y + randF()*collisionRandomness
 
-            if (distance < ball1.r+ball2.r)
+            const supposedDistance = ball1.r+ball2.r
+            const distance = hypot((rx1-rx2), (ry1-ry2))
+
+            if (distance < supposedDistance)
             {
                 // Colision
-                const cx = (ball1.x+ball2.x)/2
-                const cy = (ball1.x+ball2.x)/2
-                const cxv = (ball1.x-ball2.x)/distance
-                const cyv = (ball1.y-ball2.y)/distance
+                const cx = (rx1+rx2)/2
+                const cy = (ry1+ry2)/2
+                const cxv = (rx1-rx2)/distance
+                const cyv = (ry1-ry2)/distance
 
+                const spacingDistance = supposedDistance/2 + .0001
+                const dampener = .9
+
+                ball1.x = cx + cxv*spacingDistance
+                ball1.y = cy + cyv*spacingDistance
+                ball2.x = cx - cxv*spacingDistance
+                ball2.y = cy - cyv*spacingDistance
+
+                const theta1 = atan2(ball1.vy, ball1.vx)
+                const theta2 = atan2(ball2.vy, ball2.vx)
+                const omega = atan2(cyv, cxv)
+
+                const v1 = hypot(ball1.vx, ball1.vy)
+                const v2 = hypot(ball2.vx, ball2.vy)
+
+                const m1 = ball1.r*ball1.r
+                const m2 = ball2.r*ball2.r
+
+                const v1fxr = (v1*cos(theta1-omega)*(m1-m2) + 2*m2*v2*cos(theta2-omega))/(m1+m2)
+                const v2fxr = (v2*cos(theta2-omega)*(m2-m1) + 2*m1*v1*cos(theta1-omega))/(m1+m2)
+
+                const v1fyr = v1*sin(theta1-omega)
+                const v2fyr = v2*sin(theta2-omega)
+
+                ball1.vx = (v1fxr * cos(omega) + v1fyr * cos(omega + pi/2)) * dampener
+                ball1.vy = (v1fxr * sin(omega) + v1fyr * sin(omega + pi/2)) * dampener
+                ball2.vx = (v2fxr * cos(omega) + v2fyr * cos(omega + pi/2)) * dampener
+                ball2.vy = (v2fxr * sin(omega) + v2fyr * sin(omega + pi/2)) * dampener
             }
         })
     })
@@ -119,17 +158,17 @@ function lineCollisions()
             ball.vy = -abs(ball.vy) * bounceFriction
         }
 
-        // Right
+        // Left
         if (ball.x-ball.r < 0)
         {
-            ball.x = 1-ball.r
+            ball.x = 0+ball.r
             ball.vx = -abs(ball.vx) * bounceFriction
         }
 
         // Right
         if (ball.x+ball.r > 1)
         {
-            ball.x = 0+ball.r
+            ball.x = 1-ball.r
             ball.vx = abs(ball.vx) * bounceFriction
         }
     })
@@ -148,7 +187,7 @@ function handleLerps(dt)
         })
         endedLerps.map((index) => {
             console.log("Ended lerp", index)
-            endedLerps.splice(index, 1, 0)
+            ball.lerps.splice(index, 1)
         })
     })
 }
@@ -199,8 +238,17 @@ function update()
     requestAnimationFrame(update)
 }
 
-for (let i = 0; i < 10; i++)
-    createBall(.1 + random()*.8, 0, 0)
+for (let i = 0; i < 100; i++)
+    createBall(.5, .5, floor(random()*4))
 
 
 update()
+
+// setInterval(() => {
+//     balls.map((ball) => {
+//         ball.x = .5
+//         ball.y = .5
+//         ball.r = .001
+//         addLerp(ball, "r", ballSizes[floor(random()*4)], .25, quadraticEase)
+//     })
+// }, 1000)
