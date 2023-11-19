@@ -1,4 +1,7 @@
 const min = Math.min
+const abs = Math.abs
+const floor = Math.floor
+const random = Math.random
 
 const ballContainer = document.getElementById("ball-container")
 
@@ -6,13 +9,19 @@ const balls = []
 const updatesPerTick = 3
 const dtCap = 1/10
 
-const ballSizes = [.5, .10, .15, .20];
+const bounceFriction = 1 - .5
+const gravity = 1
+
+const ballSizes = [.05, .10, .15, .20];
 
 let lastTimeStamp = Date.now()
 
 function randomColor()
 {
-    return `rgb(${Math.floor(Math.random()*256)}, ${Math.floor(Math.random()*256)}, ${Math.floor(Math.random()*256)})`
+    return `rgb(
+        ${100+floor(random()*156)}, 
+        ${100+floor(random()*156)}, 
+        ${100+floor(random()*156)})`
 }
 
 function shuffle(array) {
@@ -35,6 +44,7 @@ function shuffle(array) {
   
 
 const linearEase = (x) => {return x;}
+const quadraticEase = (x) => {return x*x;}
 
 function addLerp(ball, property, target, time, ease=linearEase)
 {
@@ -42,8 +52,9 @@ function addLerp(ball, property, target, time, ease=linearEase)
         property: property,
         initial: ball[property],
         target: target,
+        dif: target - ball[property],
         start: Date.now(),
-        end: Date.now()+time,
+        time: time,
         ease: ease
     })
 
@@ -66,7 +77,7 @@ function createBall(posX=.5, posY=0, size=0)
         vy: 0
     }
 
-    addLerp(ball, "r", ballSizes[size], .25)
+    addLerp(ball, "r", ballSizes[size], .25, quadraticEase)
 
     balls.push(ball)
 } 
@@ -85,10 +96,14 @@ function circleCollisions()
                 (ball1.y-ball2.y)*(ball1.y-ball2.y)
                 )
 
-            if (distance < ball1.r-ball2.r)
+            if (distance < ball1.r+ball2.r)
             {
                 // Colision
-                
+                const cx = (ball1.x+ball2.x)/2
+                const cy = (ball1.x+ball2.x)/2
+                const cxv = (ball1.x-ball2.x)/distance
+                const cyv = (ball1.y-ball2.y)/distance
+
             }
         })
     })
@@ -96,27 +111,64 @@ function circleCollisions()
 
 function lineCollisions()
 {
-    
+    balls.map((ball) => {
+        // Bottom
+        if (ball.y+ball.r > 1)
+        {
+            ball.y = 1-ball.r
+            ball.vy = -abs(ball.vy) * bounceFriction
+        }
+
+        // Right
+        if (ball.x-ball.r < 0)
+        {
+            ball.x = 1-ball.r
+            ball.vx = -abs(ball.vx) * bounceFriction
+        }
+
+        // Right
+        if (ball.x+ball.r > 1)
+        {
+            ball.x = 0+ball.r
+            ball.vx = abs(ball.vx) * bounceFriction
+        }
+    })
 }
 
 function handleLerps(dt)
 {
+    balls.map((ball) => {
+        const endedLerps = []
+        ball.lerps.map((lerp, i) => {
+            const lerpA = min((Date.now()-lerp.start)/1000/lerp.time, 1)
+            ball[lerp.property] = lerp.initial + lerp.dif*lerp.ease(lerpA)
 
+            if (lerpA == 1)
+                endedLerps.splice(0, 0, i)
+        })
+        endedLerps.map((index) => {
+            console.log("Ended lerp", index)
+            endedLerps.splice(index, 1, 0)
+        })
+    })
 }
 
 function movementUpdate(dt)
 {
     balls.map((ball) => {
         const ax = 0
-        const ay = .1
+        const ay = gravity
 
         ball.x += ball.vx*dt + .5*ax*dt*dt
         ball.y += ball.vy*dt + .5*ay*dt*dt
+        ball.vx += ax*dt
+        ball.vy += ay*dt
     })
 }
 
 function physicsUpdate(dt)
 {
+    handleLerps(dt)
     movementUpdate(dt)
     for (let i = 0; i < updatesPerTick; i++)
     {
@@ -130,8 +182,9 @@ function physicsUpdate(dt)
 function renderBalls()
 {
     balls.map((ball) => {
-        ball.style.translate = `${(ball.x - ball.r/2) * 100}% ${(ball.y - ball.r/2) * 100}%`
-        ball.style.width = `${ball.r * 100}%`
+        ball.obj.style.left = `${(ball.x) * 100}%`
+        ball.obj.style.top = `${(ball.y) * 100}%`
+        ball.obj.style.width = `${ball.r * 2 *  100}%`
     })
 }
 
@@ -146,6 +199,8 @@ function update()
     requestAnimationFrame(update)
 }
 
-createBall(.5, 0, 0)
+for (let i = 0; i < 10; i++)
+    createBall(.1 + random()*.8, 0, 0)
+
 
 update()

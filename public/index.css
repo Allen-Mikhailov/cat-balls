@@ -1,3 +1,7 @@
+body {
+    overflow: hidden;
+}
+
 .ball {
     border-radius: 50%;
     aspect-ratio: 1;
@@ -10,7 +14,7 @@
 
 #ball-container {
     position: absolute;
-    width: 50vh;
+    width: 60vh;
     height: 60vh;
 
     left: 50%;
