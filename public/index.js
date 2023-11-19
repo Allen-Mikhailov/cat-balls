@@ -11,18 +11,39 @@ const cos = Math.cos
 const pi = Math.PI
 
 const ballContainer = document.getElementById("ball-container")
+const scoreDisplay = document.getElementById("score-display")
 
-const balls = []
+const balls = {}
 const updatesPerTick = 5
 const dtCap = 1/10
 
 const bounceFriction = 1 - .5
 const gravity = 1
 
-const ballSizes = [.025, .05, .075, .1];
+const ballSizes = [.025, .05, .075, .1, .15];
+const ballClasses = ["b1", "b2", "b3", "b4", "b5"]
 const collisionRandomness = 0.000001
 
+let score = 0
+
 let lastTimeStamp = Date.now()
+
+function createId(check)
+{
+    let id = ""
+    for (let i = 0; i < 100; i++)
+    {
+        id += floor(random()*10)
+    }
+    if (check[id])
+        return createId(check)
+    return id
+}
+
+function scoreUpdate()
+{
+    scoreDisplay.innerHTML = ""+score
+}
 
 function randomColor()
 {
@@ -71,8 +92,9 @@ function addLerp(ball, property, target, time, ease=linearEase)
 function createBall(posX=.5, posY=0, size=0)
 {
     const ballObj = document.createElement("div")
-    ballObj.className = "ball"
-    ballObj.style.backgroundColor = randomColor()
+    ballObj.className = "ball "+ballClasses[size]
+    ballObj.style.rotate = `${floor(random()*360)}deg`
+    // ballObj.style.backgroundColor = randomColor()
     ballContainer.appendChild(ballObj)
 
     const ball = {
@@ -82,21 +104,28 @@ function createBall(posX=.5, posY=0, size=0)
         r: .01,
         lerps: [],
         vx: 0,
-        vy: 0
+        vy: 0,
+        size: size,
     }
 
     addLerp(ball, "r", ballSizes[size], .25, quadraticEase)
 
-    balls.push(ball)
+    balls[createId(balls)] = ball
 } 
 
 // #region Physics
 
 function circleCollisions()
 {
-    const sBalls = shuffle(balls)
-    sBalls.map((ball1, i1) => {
-        sBalls.map((ball2, i2) => {
+    const sBalls = shuffle(Object.keys(balls))
+    sBalls.map((ball1N, i1) => {
+        const ball1 = balls[ball1N]
+        if (!ball1) {return;}
+
+        sBalls.map((ball2N, i2) => {
+            const ball2 = balls[ball2N]
+            if (!ball2) {return;}
+
             if (i1 == i2) {return;}
 
             const rx1 = ball1.x + randF()*collisionRandomness
@@ -110,10 +139,28 @@ function circleCollisions()
             if (distance < supposedDistance)
             {
                 // Colision
+
                 const cx = (rx1+rx2)/2
                 const cy = (ry1+ry2)/2
                 const cxv = (rx1-rx2)/distance
                 const cyv = (ry1-ry2)/distance
+
+                if (ball1.size == ball2.size)
+                {
+                    score += (ball1.size+1)*10
+                    scoreUpdate()
+
+                    if (ball1.size != ballSizes.length-1)
+                        createBall(cx, cy, ball1.size+1)
+
+                    ball1.obj.remove()
+                    ball2.obj.remove()
+
+                    delete balls[ball1N] 
+                    delete balls[ball2N]
+
+                    return;
+                }
 
                 const spacingDistance = supposedDistance/2 + .0001
                 const dampener = .9
@@ -150,7 +197,8 @@ function circleCollisions()
 
 function lineCollisions()
 {
-    balls.map((ball) => {
+    Object.keys(balls).map((ballN) => {
+        const ball = balls[ballN]
         // Bottom
         if (ball.y+ball.r > 1)
         {
@@ -176,7 +224,8 @@ function lineCollisions()
 
 function handleLerps(dt)
 {
-    balls.map((ball) => {
+    Object.keys(balls).map((ballN) => {
+        const ball = balls[ballN]
         const endedLerps = []
         ball.lerps.map((lerp, i) => {
             const lerpA = min((Date.now()-lerp.start)/1000/lerp.time, 1)
@@ -186,7 +235,7 @@ function handleLerps(dt)
                 endedLerps.splice(0, 0, i)
         })
         endedLerps.map((index) => {
-            console.log("Ended lerp", index)
+            // console.log("Ended lerp", index)
             ball.lerps.splice(index, 1)
         })
     })
@@ -194,7 +243,8 @@ function handleLerps(dt)
 
 function movementUpdate(dt)
 {
-    balls.map((ball) => {
+    Object.keys(balls).map((ballN) => {
+        const ball = balls[ballN]
         const ax = 0
         const ay = gravity
 
@@ -220,7 +270,8 @@ function physicsUpdate(dt)
 
 function renderBalls()
 {
-    balls.map((ball) => {
+    Object.keys(balls).map((ballN) => {
+        const ball = balls[ballN]
         ball.obj.style.left = `${(ball.x) * 100}%`
         ball.obj.style.top = `${(ball.y) * 100}%`
         ball.obj.style.width = `${ball.r * 2 *  100}%`
@@ -238,11 +289,20 @@ function update()
     requestAnimationFrame(update)
 }
 
-for (let i = 0; i < 100; i++)
-    createBall(.5, .5, floor(random()*4))
+// for (let i = 0; i < 20; i++)
+//     createBall(.5, .5, floor(random()*4))
+
+ballContainer.onclick = (e) => {
+    const rect = ballContainer.getBoundingClientRect()
+    createBall((e.clientX-rect.left)/rect.width, 0, 0)
+
+    score += 5
+    scoreUpdate()
+}
 
 
 update()
+scoreUpdate()
 
 // setInterval(() => {
 //     balls.map((ball) => {
