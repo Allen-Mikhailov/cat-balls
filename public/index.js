@@ -1,4 +1,5 @@
 const min = Math.min
+const max = Math.max
 const abs = Math.abs
 const floor = Math.floor
 const random = Math.random
@@ -9,6 +10,7 @@ const atan2 = Math.atan2
 const sin = Math.sin
 const cos = Math.cos
 const pi = Math.PI
+const sign = Math.sign
 
 const ballContainer = document.getElementById("ball-container")
 const scoreDisplay = document.getElementById("score-display")
@@ -20,9 +22,17 @@ const dtCap = 1/10
 const bounceFriction = 1 - .5
 const gravity = 1
 
-const ballSizes = [.025, .05, .075, .1, .15];
-const ballClasses = ["b1", "b2", "b3", "b4", "b5"]
+const ballSizes = [.025, .05, .075, .1, .15, .2, .25, .35];
+const ballClasses = ["b1", "b2", "b3", "b4", "b5", "b5", "b5", "b5"]
 const collisionRandomness = 0.000001
+
+// loading audio
+const meows = [
+    ["./sfx/meow1.mp3", .08],
+    ["./sfx/meow2.mp3", .4],
+    ["./sfx/meow3.mp3", .2]
+]
+
 
 let score = 0
 
@@ -110,6 +120,11 @@ function createBall(posX=.5, posY=0, size=0)
 
     addLerp(ball, "r", ballSizes[size], .25, quadraticEase)
 
+    const s = meows[floor(random()*meows.length)]
+    const sound = new Audio(s[0])
+    sound.volume = s[1]
+    sound.play()
+
     balls[createId(balls)] = ball
 } 
 
@@ -195,7 +210,13 @@ function circleCollisions()
     })
 }
 
-function lineCollisions()
+function friction(v, a, dt)
+{
+    return sign(v) * max(abs(v) - a*dt, 0)
+}
+
+const floorFriction = .15
+function lineCollisions(dt)
 {
     Object.keys(balls).map((ballN) => {
         const ball = balls[ballN]
@@ -204,6 +225,7 @@ function lineCollisions()
         {
             ball.y = 1-ball.r
             ball.vy = -abs(ball.vy) * bounceFriction
+            ball.vx = friction(ball.vx, floorFriction, dt)
         }
 
         // Left
@@ -261,8 +283,8 @@ function physicsUpdate(dt)
     movementUpdate(dt)
     for (let i = 0; i < updatesPerTick; i++)
     {
-        circleCollisions()
-        lineCollisions()
+        circleCollisions(dt)
+        lineCollisions(dt)
     }
 }
 
@@ -294,7 +316,7 @@ function update()
 
 ballContainer.onclick = (e) => {
     const rect = ballContainer.getBoundingClientRect()
-    createBall((e.clientX-rect.left)/rect.width, 0, 0)
+    createBall((e.clientX-rect.left)/rect.width, 0, floor(random()*3))
 
     score += 5
     scoreUpdate()
