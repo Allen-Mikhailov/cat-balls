@@ -1,5 +1,14 @@
+:root {
+    --background-color: #cf9c51;
+    --sides-color: #b07112;
+    --border-width: .5vh;
+}
+
 body {
     overflow: hidden;
+    background-color: var(--background-color);
+    color: var(--sides-color);
+    font-family: "Poppins";
 }
 
 .ball {
@@ -26,7 +35,25 @@ body {
 
     translate: -50% -50%;
 
-    background-color: black;
+    /* background-color: black; */
+
+    border-width: var(--border-width);
+    border-style: solid;
+    border-color: var(--sides-color);
+}
+
+#ball-line {
+    --s: calc(var(--border-width) / 2);
+
+    position: absolute;
+    width: calc(100% - var(--s));
+    height: 0px;
+    top: calc(20% - var(--s));
+
+    border-width: var(--s);
+    border-color: var(--sides-color);
+    border-style: dashed;
+
 }
 
 #score-display {
@@ -34,7 +61,49 @@ body {
     right: 3em;
     top: 3em;
 
-    font-size: 2vh;
+    font-size: 4vh;
+}
+
+#game-end-countdown {
+    /* position: absolute; */
+    text-align: center;
+    /* right: 3em;
+    top: 3em; */
+
+    margin-top: 10vh;
+
+    font-size: 5vh;
+}
+
+#restart-button {
+    position: absolute;
+    text-align: center;
+    /* right: 3em;
+    top: 3em; */
+    bottom: 5vh;
+    left: 50vw;
+    translate: -50% 0px;
+
+    /* margin-top: 75vh; */
+
+    font-size: 5vh;
+
+    border-radius: .25em;
+
+
+
+    padding: .25em;
+    border-width: var(--border-width);
+    border-style: solid;
+    border-color: var(--sides-color);
+
+    cursor: pointer;
+
+    transition: all .25s;
+}
+
+#restart-button:hover {
+    scale: 1.1;
 }
 
 .b1 {

@@ -14,6 +14,8 @@ const sign = Math.sign
 
 const ballContainer = document.getElementById("ball-container")
 const scoreDisplay = document.getElementById("score-display")
+const gameEndTimer = document.getElementById("game-end-countdown")
+const restartButton = document.getElementById("restart-button")
 
 const balls = {}
 const updatesPerTick = 5
@@ -26,6 +28,8 @@ const ballSizes = [.025, .05, .075, .1, .15, .2, .25, .35];
 const ballClasses = ["b1", "b2", "b3", "b4", "b5", "b5", "b5", "b5"]
 const collisionRandomness = 0.000001
 
+const grace = 5
+
 // loading audio
 const meows = [
     ["./sfx/meow1.mp3", .08],
@@ -35,8 +39,8 @@ const meows = [
 
 
 let score = 0
-
 let lastTimeStamp = Date.now()
+let gameEnd = false
 
 function createId(check)
 {
@@ -99,10 +103,15 @@ function addLerp(ball, property, target, time, ease=linearEase)
 
 }
 
+function getBallClass(size)
+{
+    return "ball "+ballClasses[size]
+}
+
 function createBall(posX=.5, posY=0, size=0)
 {
     const ballObj = document.createElement("div")
-    ballObj.className = "ball "+ballClasses[size]
+    ballObj.className = getBallClass(size)
     ballObj.style.rotate = `${floor(random()*360)}deg`
     // ballObj.style.backgroundColor = randomColor()
     ballContainer.appendChild(ballObj)
@@ -290,24 +299,86 @@ function physicsUpdate(dt)
 
 // #endregion
 
+function updateBallStyle(obj, x, y, r)
+{
+    obj.style.left = `${(x) * 100}%`
+    obj.style.top = `${(y) * 100}%`
+    obj.style.width = `${r * 2 *  100}%`
+}
+
 function renderBalls()
 {
     Object.keys(balls).map((ballN) => {
         const ball = balls[ballN]
-        ball.obj.style.left = `${(ball.x) * 100}%`
-        ball.obj.style.top = `${(ball.y) * 100}%`
-        ball.obj.style.width = `${ball.r * 2 *  100}%`
+        updateBallStyle(ball.obj, ball.x, ball.y, ball.r)
     })
 }
 
+let nextBall = 0
+const nextBallDiv = document.createElement("div")
+ballContainer.appendChild(nextBallDiv)
+
+function newball()
+{
+    nextBall = floor(random()*3)
+    nextBallDiv.className = getBallClass(nextBall)
+    updateBallStyle(nextBallDiv, .5, 0, ballSizes[nextBall])
+}
+
+let gameEndTime = 0
+
+function checkForGameEnd(dt)
+{
+    let isGameEnd = false
+    Object.keys(balls).map((ballN) => {
+        const ball = balls[ballN]
+        if (ball.y-ball.r < .2 && abs(ball.vy) < .1)
+        {
+            isGameEnd = true
+            // gameEndTime += dt
+        } 
+    })
+
+    if (isGameEnd)
+    {
+        gameEndTime += dt
+        
+
+        if (gameEndTime>grace)
+        {
+            gameEndTimer.innerHTML = "Game Ended"
+            gameEnd = true
+            return
+        }
+    } else {
+        gameEndTime = 0
+        gameEndTimer.innerHTML = ""
+    }
+
+    gameEndTimer.innerHTML = "" + (gameEndTime > 0.5?floor(gameEndTime*100)/100:"")
+}
+
+let cx = 0
+let cy = 0
+
 function update()
 {
+    // dt calculations
     const t = Date.now()
     const dt = min(dtCap, (t-lastTimeStamp)/1000)
     lastTimeStamp = t
 
-    physicsUpdate(dt)
-    renderBalls()
+    if (!gameEnd)
+    {
+        // Main stuff
+        physicsUpdate(dt)
+        renderBalls()
+
+        // Check for game end
+        checkForGameEnd(dt)
+    }
+    
+
     requestAnimationFrame(update)
 }
 
@@ -315,16 +386,37 @@ function update()
 //     createBall(.5, .5, floor(random()*4))
 
 ballContainer.onclick = (e) => {
-    const rect = ballContainer.getBoundingClientRect()
-    createBall((e.clientX-rect.left)/rect.width, 0, floor(random()*3))
+    if (gameEnd) {return;}
 
-    score += 5
-    scoreUpdate()
+    const rect = ballContainer.getBoundingClientRect()
+    createBall((e.clientX-rect.left)/rect.width, 0, nextBall)
+
+    newball()
+} 
+
+ballContainer.onmousemove = (e) => {
+    const rect = ballContainer.getBoundingClientRect()
+    cx = (e.clientX-rect.left)/rect.width
+    cy = (e.clientY-rect.top)/rect.height
 }
 
-
+newball()
 update()
 scoreUpdate()
+
+restartButton.onclick = () => {
+    Object.keys(balls).map((ballN) => {
+        const ball = balls[ballN]
+        ball.obj.remove()
+        delete balls[ballN]
+    })
+    
+    score = 0
+    gameEnd = false
+    gameEndTime = 0
+    newball()
+    scoreUpdate()
+}
 
 // setInterval(() => {
 //     balls.map((ball) => {
