@@ -27,8 +27,8 @@ body {
 
 #ball-container {
     position: absolute;
-    width: 60vh;
-    height: 60vh;
+    width: min(60vh, 90vw);
+    aspect-ratio: 1;
 
     left: 50%;
     top: 50%;
@@ -58,8 +58,8 @@ body {
 
 #score-display {
     position: absolute;
-    right: 3em;
-    top: 3em;
+    right: 5%;
+    top: 5%;
 
     font-size: 4vh;
 }
