@@ -24,10 +24,52 @@ const dtCap = 1/10
 const bounceFriction = 1 - .5
 const gravity = 1
 
-const ballSizes = [.025, .05, .075, .1, .15, .2, .25, .35];
-const ballClasses = ["b1", "b2", "b3", "b4", "b5", "b5", "b5", "b5"]
-const collisionRandomness = 0.000001
+const ballTypes = [
+    {
+        image: "c1.jpeg"
+    },
+    {
+        image: "c2.jpg"
+    },
+    {
+        image: "c3.jpg"
+    },
+    {
+        image: "c4.jpg"
+    },
+    {
+        image: "c5.jpg"
+    },
+    {
+        image: "c6.jpeg"
+    },
+    {
+        image: "c7.jpg"
+    },
+    {
+        image: "c8.jpg"
+    },
+    {
+        image: "c9.jpg"
+    },
+    {
+        image: "c10.jpg"
+    },
+    {
+        image: "c11.jpg"
+    },
+]
 
+// Calculating Sizes based on radius
+const startingRadius = .03
+let size = startingRadius
+ballTypes.map((ball, i) => {
+    ball.size = size
+    size = sqrt(size*size*1.75)
+    console.log(size)
+})
+
+const collisionRandomness = 0.000001
 const grace = 5
 
 // loading audio
@@ -103,16 +145,17 @@ function addLerp(ball, property, target, time, ease=linearEase)
 
 }
 
-function getBallClass(size)
+function getBallImage(size)
 {
-    return "ball "+ballClasses[size]
+    return `url(./imgs/${ballTypes[size].image})`
 }
 
 function createBall(posX=.5, posY=0, size=0)
 {
     const ballObj = document.createElement("div")
-    ballObj.className = getBallClass(size)
+    ballObj.className = "ball"
     ballObj.style.rotate = `${floor(random()*360)}deg`
+    ballObj.style.backgroundImage = getBallImage(size)
     // ballObj.style.backgroundColor = randomColor()
     ballContainer.appendChild(ballObj)
 
@@ -127,7 +170,7 @@ function createBall(posX=.5, posY=0, size=0)
         size: size,
     }
 
-    addLerp(ball, "r", ballSizes[size], .25, quadraticEase)
+    addLerp(ball, "r", ballTypes[size].size, .25, quadraticEase)
 
     const s = meows[floor(random()*meows.length)]
     const sound = new Audio(s[0])
@@ -148,9 +191,7 @@ function circleCollisions()
 
         sBalls.map((ball2N, i2) => {
             const ball2 = balls[ball2N]
-            if (!ball2) {return;}
-
-            if (i1 == i2) {return;}
+            if (!ball2 || i1 == i2) {return;}
 
             const rx1 = ball1.x + randF()*collisionRandomness
             const ry1 = ball1.y + randF()*collisionRandomness
@@ -174,7 +215,7 @@ function circleCollisions()
                     score += (ball1.size+1)*10
                     scoreUpdate()
 
-                    if (ball1.size != ballSizes.length-1)
+                    if (ball1.size != ballTypes.length-1)
                         createBall(cx, cy, ball1.size+1)
 
                     ball1.obj.remove()
@@ -299,6 +340,7 @@ function physicsUpdate(dt)
 
 // #endregion
 
+
 function updateBallStyle(obj, x, y, r)
 {
     obj.style.left = `${(x) * 100}%`
@@ -316,13 +358,14 @@ function renderBalls()
 
 let nextBall = 0
 const nextBallDiv = document.createElement("div")
+nextBallDiv.className = "ball"
 ballContainer.appendChild(nextBallDiv)
 
 function newball()
 {
     nextBall = floor(random()*3)
-    nextBallDiv.className = getBallClass(nextBall)
-    updateBallStyle(nextBallDiv, .5, 0, ballSizes[nextBall])
+    nextBallDiv.style.backgroundImage = getBallImage(nextBall)
+    updateBallStyle(nextBallDiv, .5, 0, ballTypes[nextBall].size)
 }
 
 let gameEndTime = 0
