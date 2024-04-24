@@ -365,7 +365,6 @@ function newball()
 {
     nextBall = floor(random()*3)
     nextBallDiv.style.backgroundImage = getBallImage(nextBall)
-    updateBallStyle(nextBallDiv, .5, 0, ballTypes[nextBall].size)
 }
 
 let gameEndTime = 0
@@ -417,6 +416,8 @@ function update()
         physicsUpdate(dt)
         renderBalls()
 
+        updateBallStyle(nextBallDiv, cx, 0, ballTypes[nextBall].size)
+
         // Check for game end
         checkForGameEnd(dt)
     }
@@ -441,6 +442,10 @@ ballContainer.onmousemove = (e) => {
     const rect = ballContainer.getBoundingClientRect()
     cx = (e.clientX-rect.left)/rect.width
     cy = (e.clientY-rect.top)/rect.height
+
+    // console.log("move", cx)
+
+    
 }
 
 newball()
@@ -460,12 +465,3 @@ restartButton.onclick = () => {
     newball()
     scoreUpdate()
 }
-
-// setInterval(() => {
-//     balls.map((ball) => {
-//         ball.x = .5
-//         ball.y = .5
-//         ball.r = .001
-//         addLerp(ball, "r", ballSizes[floor(random()*4)], .25, quadraticEase)
-//     })
-// }, 1000)
