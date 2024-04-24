@@ -1,4 +1,5 @@
-import { physicsUpdate } from "./physics.js"
+import { Universe, PhysicsBall, quadraticEase } from "./physics.js"
+import ballTypes from "./ball_types.js"
 
 const min = Math.min
 const max = Math.max
@@ -19,59 +20,13 @@ const scoreDisplay = document.getElementById("score-display")
 const gameEndTimer = document.getElementById("game-end-countdown")
 const restartButton = document.getElementById("restart-button")
 
-const balls = {}
-const updatesPerTick = 5
+const universe = new Universe();
+const balls = universe.balls;
+
 const dtCap = 1/10
 
-const bounceFriction = 1 - .5
-const gravity = 1
-
-const ballTypes = [
-    {
-        image: "c1.jpeg"
-    },
-    {
-        image: "c2.jpg"
-    },
-    {
-        image: "c3.jpg"
-    },
-    {
-        image: "c4.jpg"
-    },
-    {
-        image: "c5.jpg"
-    },
-    {
-        image: "c6.jpeg"
-    },
-    {
-        image: "c7.jpg"
-    },
-    {
-        image: "c8.jpg"
-    },
-    {
-        image: "c9.jpg"
-    },
-    {
-        image: "c10.jpg"
-    },
-    {
-        image: "c11.jpg"
-    },
-]
-
 // Calculating Sizes based on radius
-const startingRadius = .03
-let size = startingRadius
-ballTypes.map((ball, i) => {
-    ball.size = size
-    size = sqrt(size*size*1.75)
-    console.log(size)
-})
 
-const collisionRandomness = 0.000001
 const grace = 5
 
 // loading audio
@@ -110,58 +65,42 @@ function randomColor()
         ${100+floor(random()*156)}, 
         ${100+floor(random()*156)})`
 }
-  
-
-const linearEase = (x) => {return x;}
-const quadraticEase = (x) => {return x*x;}
-
-function addLerp(ball, property, target, time, ease=linearEase)
-{
-    ball.lerps.push({
-        property: property,
-        initial: ball[property],
-        target: target,
-        dif: target - ball[property],
-        start: Date.now(),
-        time: time,
-        ease: ease
-    })
-
-}
 
 function getBallImage(size)
 {
     return `url(./imgs/${ballTypes[size].image})`
 }
 
+class Ball extends PhysicsBall
+{
+    constructor(x, y, size)
+    {
+        super(x, y, .1)
+        this.size = size
+
+        const ballObj = document.createElement("div")
+        ballObj.className = "ball"
+        ballObj.style.rotate = `${floor(random()*360)}deg`
+        ballObj.style.backgroundImage = getBallImage(size)
+        ballContainer.appendChild(ballObj)
+
+        this.obj = ballObj
+
+        super.addLerp("r", ballTypes[size].size, .25, quadraticEase)
+    }
+}
+
 function createBall(posX=.5, posY=0, size=0)
 {
-    const ballObj = document.createElement("div")
-    ballObj.className = "ball"
-    ballObj.style.rotate = `${floor(random()*360)}deg`
-    ballObj.style.backgroundImage = getBallImage(size)
-    // ballObj.style.backgroundColor = randomColor()
-    ballContainer.appendChild(ballObj)
+    const ball = new Ball(posX, posY, size)
 
-    const ball = {
-        obj: ballObj,
-        x: posX,
-        y: posY,
-        r: .01,
-        lerps: [],
-        vx: 0,
-        vy: 0,
-        size: size,
-    }
-
-    addLerp(ball, "r", ballTypes[size].size, .25, quadraticEase)
+    const id = createId(balls)
+    universe.addBall(id, ball)
 
     const s = meows[floor(random()*meows.length)]
     const sound = new Audio(s[0])
     sound.volume = s[1]
     sound.play()
-
-    balls[createId(balls)] = ball
 } 
 
 
@@ -184,6 +123,27 @@ let nextBall = 0
 const nextBallDiv = document.createElement("div")
 nextBallDiv.className = "ball"
 ballContainer.appendChild(nextBallDiv)
+
+universe.setOnCollision((b1, b2) => {
+    const ball1 = balls[b1]
+    const ball2 = balls[b2]
+    if (ball1.size == ball2.size)
+    {
+        score += (ball1.size+1)*10
+        scoreUpdate()
+
+        if (ball1.size != ballTypes.length-1)
+            createBall(cx, cy, ball1.size+1)
+
+        ball1.obj.remove()
+        ball2.obj.remove()
+
+        delete balls[b1] 
+        delete balls[b2]
+
+        return;
+    }
+})
 
 function newball()
 {
@@ -237,7 +197,7 @@ function update()
     if (!gameEnd)
     {
         // Main stuff
-        physicsUpdate(balls, dt)
+        universe.physicsUpdate(dt)
         renderBalls()
 
         updateBallStyle(nextBallDiv, cx, 0, ballTypes[nextBall].size)
@@ -249,9 +209,6 @@ function update()
 
     requestAnimationFrame(update)
 }
-
-// for (let i = 0; i < 20; i++)
-//     createBall(.5, .5, floor(random()*4))
 
 ballContainer.onclick = (e) => {
     if (gameEnd) {return;}
