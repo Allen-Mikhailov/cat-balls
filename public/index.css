@@ -23,6 +23,8 @@ body {
 
     background-position: center;
     background-size: cover;
+
+    /* border: solid 2px black; */
 }
 
 #ball-container {
@@ -40,6 +42,8 @@ body {
     border-width: var(--border-width);
     border-style: solid;
     border-color: var(--sides-color);
+
+    border-top-style: dashed;
 }
 
 #ball-line {

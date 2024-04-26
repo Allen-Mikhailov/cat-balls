@@ -77,6 +77,7 @@ class Ball extends PhysicsBall
     {
         super(x, y, .01)
         this.size = size
+        this.is_merging = false
 
         const ballObj = document.createElement("div")
         ballObj.className = "ball"
@@ -127,7 +128,9 @@ ballContainer.appendChild(nextBallDiv)
 universe.setOnCollision((b1, b2, cx, cy) => {
     const ball1 = balls[b1]
     const ball2 = balls[b2]
-    if (ball1.size == ball2.size)
+    if (ball1.size == ball2.size 
+        && ball1.is_merging == false 
+        && ball2.is_merging == false)
     {
         score += (ball1.size+1)*10
         scoreUpdate()
@@ -140,6 +143,9 @@ universe.setOnCollision((b1, b2, cx, cy) => {
         
         ball1.setAnchored(false)
         ball2.setAnchored(false)
+
+        ball1.is_merging = true 
+        ball2.is_merging = true
 
         ball1.addLerp("x", cx, .25, quadraticEase)
         ball1.addLerp("y", cy, .25, quadraticEase)
@@ -172,7 +178,7 @@ function checkForGameEnd(dt)
     let isGameEnd = false
     Object.keys(balls).map((ballN) => {
         const ball = balls[ballN]
-        if (ball.y-ball.r < .2 && abs(ball.vy) < .1)
+        if (ball.y-ball.r < 0 && abs(ball.vy) < .1)
         {
             isGameEnd = true
             // gameEndTime += dt
