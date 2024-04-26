@@ -75,7 +75,7 @@ class Ball extends PhysicsBall
 {
     constructor(x, y, size)
     {
-        super(x, y, .1)
+        super(x, y, .01)
         this.size = size
 
         const ballObj = document.createElement("div")
@@ -124,7 +124,7 @@ const nextBallDiv = document.createElement("div")
 nextBallDiv.className = "ball"
 ballContainer.appendChild(nextBallDiv)
 
-universe.setOnCollision((b1, b2) => {
+universe.setOnCollision((b1, b2, cx, cy) => {
     const ball1 = balls[b1]
     const ball2 = balls[b2]
     if (ball1.size == ball2.size)
@@ -135,11 +135,25 @@ universe.setOnCollision((b1, b2) => {
         if (ball1.size != ballTypes.length-1)
             createBall(cx, cy, ball1.size+1)
 
-        ball1.obj.remove()
-        ball2.obj.remove()
+        ball1.setCanCollide(false)
+        ball2.setCanCollide(false)
+        
+        ball1.setAnchored(false)
+        ball2.setAnchored(false)
 
-        delete balls[b1] 
-        delete balls[b2]
+        ball1.addLerp("x", cx, .25, quadraticEase)
+        ball1.addLerp("y", cy, .25, quadraticEase)
+
+        ball2.addLerp("x", cx, .25, quadraticEase)
+        ball2.addLerp("y", cy, .25, quadraticEase)
+
+        setTimeout(() => {
+            ball1.obj.remove()
+            ball2.obj.remove()
+
+            delete balls[b1] 
+            delete balls[b2]
+        }, 250)
 
         return;
     }

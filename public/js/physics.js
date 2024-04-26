@@ -64,6 +64,9 @@ class PhysicsBall
         this.y = y
         this.r = r
 
+        this.can_collide = true
+        this.anchored = false
+
         this.vx = 0
         this.vy = 0
 
@@ -76,6 +79,16 @@ class PhysicsBall
         this.y += this.vy*dt + .5*ay*dt*dt
         this.vx += ax*dt
         this.vy += ay*dt
+    }
+
+    setCanCollide(toggle)
+    {
+        this.can_collide = toggle
+    }
+
+    setAnchored(toggle)
+    {
+        this.anchored = toggle
     }
 
     addLerp(property, target, time, ease=linearEase)
@@ -136,7 +149,12 @@ class Universe
 
     circleCollisions()
     {
-        const sBalls = shuffle(Object.keys(this.balls))
+        const keys = []
+        Object.keys(this.balls).map((key) => {
+            if (this.balls[key].can_collide)
+                keys.push(key)
+        })
+        const sBalls = shuffle(keys)
         for (let i = 0; i < sBalls.length; i++)
         {
             const ball1 = this.balls[sBalls[i]]
@@ -145,7 +163,7 @@ class Universe
             for (let j = i+1; j < sBalls.length; j++)
             {
                 const ball2 = this.balls[sBalls[j]]
-                if (!ball2) {return;}
+                if (!ball2 || !this.balls[sBalls[i]]) {return;}
 
                 const rx1 = ball1.x + randF()*collisionRandomness
                 const ry1 = ball1.y + randF()*collisionRandomness
@@ -210,7 +228,7 @@ class Universe
             this.lineCollisions(dt)
         }
         
-        console.log("Physics time", (Date.now()-update_start)/1000)
+        // console.log("Physics time", (Date.now()-update_start)/1000)
     }
 
     lineCollisions(dt)
@@ -247,6 +265,8 @@ class Universe
             const ball = this.balls[ballN]
             const ax = 0
             const ay = gravity
+
+            if (ball.anchored) {return;}
 
             ball.movementUpdate(ax, ay, dt)
         })
