@@ -246,15 +246,16 @@ class Universe
             // Left
             if (ball.x-ball.r < 0)
             {
-                ball.x = 0+ball.r
-                ball.vx = -abs(ball.vx) * bounceFriction
+                ball.x = 0+ball.r+collisionRandomness
+                ball.vx = abs(ball.vx) * bounceFriction
+                // console.log()
             }
 
             // Right
             if (ball.x+ball.r > 1)
             {
-                ball.x = 1-ball.r
-                ball.vx = abs(ball.vx) * bounceFriction
+                ball.x = 1-ball.r-collisionRandomness
+                ball.vx = -abs(ball.vx) * bounceFriction
             }
         })
     }
