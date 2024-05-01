@@ -89,12 +89,37 @@ body {
     translate: -50% 0px;
 
     /* margin-top: 75vh; */
+}
+
+.top-left {
+    position: absolute;
+    
+    /* right: 3em;
+    top: 3em; */
+    top: 5vh;
+    left: 5vh;
+}
+
+#signin-button {
+    /* position: absolute;
+    left: 0%;
+    top: 0%; */
+}
+
+#signed-in-email {
+    font-size: 2vh;
+}
+
+#signout-button {
+    font-size: 2vh;
+}
+
+.button {
+    text-align: center;
 
     font-size: 5vh;
 
     border-radius: .25em;
-
-
 
     padding: .25em;
     border-width: var(--border-width);
@@ -106,7 +131,6 @@ body {
     transition: all .25s;
 }
 
-#restart-button:hover {
+.button:hover {
     scale: 1.1;
 }
-

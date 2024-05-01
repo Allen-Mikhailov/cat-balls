@@ -1,4 +1,5 @@
 import { Universe, PhysicsBall, quadraticEase } from "./physics.js"
+import { getLeaderboard, auth, signInAttempt, onAuthStateChanged, signOut  } from "./firebase.js"
 import ballTypes from "./ball_types.js"
 
 const min = Math.min
@@ -19,6 +20,10 @@ const ballContainer = document.getElementById("ball-container")
 const scoreDisplay = document.getElementById("score-display")
 const gameEndTimer = document.getElementById("game-end-countdown")
 const restartButton = document.getElementById("restart-button")
+const signinButton = document.getElementById("signin-button")
+const signedIn = document.getElementById("signed-in")
+const signoutButton = document.getElementById("signout-button")
+const signedInEmail = document.getElementById("signed-in-email")
 
 const universe = new Universe();
 const balls = universe.balls;
@@ -262,3 +267,21 @@ restartButton.onclick = () => {
     newball()
     scoreUpdate()
 }
+
+function authUpdate(user)
+{
+    console.log(user)
+    signinButton.style.display = user == null? "block":"none";
+    signedIn.style.display = user == null? "none":"block";
+    if (user)
+    {
+        signedInEmail.innerText = user.email
+    } else {
+        
+    }
+}
+
+onAuthStateChanged(auth, authUpdate)
+
+signinButton.onclick = signInAttempt
+signoutButton.onclick = () => signOut(auth)
