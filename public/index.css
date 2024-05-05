@@ -62,8 +62,10 @@ body {
 
 #score-display {
     position: absolute;
-    right: 5%;
-    top: 5%;
+    /* right: 5%; */
+    left: 50%;
+    translate: -50% 100%;
+    bottom: -5%;
 
     font-size: 4vh;
 }
@@ -100,6 +102,15 @@ body {
     left: 5vh;
 }
 
+.top-right {
+    position: absolute;
+    
+    /* right: 3em;
+    top: 3em; */
+    top: 5vh;
+    right: 5vh;
+}
+
 #signin-button {
     /* position: absolute;
     left: 0%;
@@ -117,7 +128,7 @@ body {
 .button {
     text-align: center;
 
-    font-size: 5vh;
+    font-size: 2vh;
 
     border-radius: .25em;
 
@@ -133,4 +144,38 @@ body {
 
 .button:hover {
     scale: 1.1;
+}
+
+#signed-in {
+    display: flex;
+    flex-direction: row;
+
+    justify-content: center;
+    align-items: center;
+}
+
+#signed-in-icon {
+    display: block;
+    height: 4vh;
+    width: 4vh;
+    /* aspect-ratio: 1; */
+    border-radius: 50%;
+
+    background-position: center;
+    background-size: cover;
+
+    margin-right: .5em;
+}
+
+#leaderboard-title {
+
+}
+
+#leaderboard-container {
+    font-size: 1.75vh;
+}
+
+#signed-in-highscore {
+    position: absolute;
+    top: 100%;
 }

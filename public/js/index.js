@@ -1,5 +1,6 @@
 import { Universe, PhysicsBall, quadraticEase } from "./physics.js"
-import { getLeaderboard, auth, signInAttempt, onAuthStateChanged, signOut  } from "./firebase.js"
+import { getLeaderboard, auth, signInAttempt, onAuthStateChanged, signOut, 
+    setDoc, getDoc, doc, db} from "./firebase.js"
 import ballTypes from "./ball_types.js"
 
 const min = Math.min
@@ -23,7 +24,10 @@ const restartButton = document.getElementById("restart-button")
 const signinButton = document.getElementById("signin-button")
 const signedIn = document.getElementById("signed-in")
 const signoutButton = document.getElementById("signout-button")
-const signedInEmail = document.getElementById("signed-in-email")
+// const signedInEmail = document.getElementById("signed-in-email")
+const signedInIcon = document.getElementById("signed-in-icon")
+const leaderboardContainer = document.getElementById("leaderboard-container")
+const signedInHighscore = document.getElementById("signed-in-highscore")
 
 const universe = new Universe();
 const balls = universe.balls;
@@ -31,6 +35,11 @@ const balls = universe.balls;
 const dtCap = 1/10
 
 // Calculating Sizes based on radius
+
+let userId
+let userEmail
+let userDoc
+let userHighscore 
 
 const grace = 5
 
@@ -41,6 +50,34 @@ const meows = [
     ["./sfx/meow3.mp3", .2]
 ]
 
+function UpdateLeaderBoard()
+{
+    const leaderboard = []
+
+    getLeaderboard().then(data => {
+        data.forEach((doc) => {
+            // doc.data() is never undefined for query doc snapshots
+            console.log(doc.id, " => ", doc.data());    
+            const data = doc.data()
+            const element = document.createElement("div")
+            element.innerText = `${data.highscore} : ${data.email || "no email"}`
+            leaderboardContainer.appendChild(element)
+        })
+    })
+}
+
+UpdateLeaderBoard()
+
+function uploadScore()
+{
+    if (userId && userDoc)
+    {
+        setDoc(userDoc, {
+            "email": userEmail,
+            "highscore": userHighscore
+        })
+    }
+}
 
 let score = 0
 let lastTimeStamp = Date.now()
@@ -260,6 +297,13 @@ restartButton.onclick = () => {
         ball.obj.remove()
         delete balls[ballN]
     })
+
+    if (score > userHighscore)
+    {
+        userHighscore = score
+        signedInHighscore.innerText = "highscore : " + userHighscore
+        uploadScore()
+    }
     
     score = 0
     gameEnd = false
@@ -272,12 +316,36 @@ function authUpdate(user)
 {
     console.log(user)
     signinButton.style.display = user == null? "block":"none";
-    signedIn.style.display = user == null? "none":"block";
+    signedIn.style.display = user == null? "none":"flex";
     if (user)
     {
-        signedInEmail.innerText = user.email
+        console.log(user)
+        signedInIcon.style.backgroundImage = `url(${user.photoURL})`
+        userId = user.uid
+        userEmail = user.email
+
+        userDoc = doc(db, 'users', userId);
+
+        getDoc(userDoc).then((doc) => {
+            const data = doc.data() 
+            if (data)
+                userHighscore = doc.data().highscore
+            else 
+                userHighscore = 0
+            signedInHighscore.innerText = "highscore : " + userHighscore
+
+            setDoc(userDoc, {
+                "email": userEmail,
+                "highscore": userHighscore
+            })
+        })
+
+        // signedInEmail.innerText = user.email
     } else {
-        
+        userId = null
+        userEmail = null
+        userDoc = null
+        userHighscore = null
     }
 }
 

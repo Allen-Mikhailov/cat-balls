@@ -13,6 +13,9 @@ import {
 	query,
 	orderBy,
 	limit,
+	setDoc,
+	getDoc,
+	doc,
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -59,7 +62,7 @@ const usersRef = new collection(db, "users");
 const leaderboard_query = new query(
 	usersRef,
 	orderBy("highscore", "desc"),
-	limit(10)
+	limit(5)
 );
 
 function getLeaderboard(params) {
@@ -68,3 +71,10 @@ function getLeaderboard(params) {
 }
 
 export { getLeaderboard };
+
+export {
+	setDoc,
+	getDoc,
+	doc,
+	db
+}
