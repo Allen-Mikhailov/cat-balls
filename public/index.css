@@ -98,8 +98,8 @@ body {
     
     /* right: 3em;
     top: 3em; */
-    top: 5vh;
-    left: 5vh;
+    top: 3vh;
+    left: 3vh;
 }
 
 .top-right {
@@ -107,8 +107,8 @@ body {
     
     /* right: 3em;
     top: 3em; */
-    top: 5vh;
-    right: 5vh;
+    top: 3vh;
+    right: 3vh;
 }
 
 #signin-button {
@@ -178,4 +178,14 @@ body {
 #signed-in-highscore {
     position: absolute;
     top: 100%;
+}
+
+#made-with {
+    position:absolute;
+    left: 1%;
+    bottom: 0%;
+}
+
+#made-with a {
+    color: var(--sides-color);
 }
